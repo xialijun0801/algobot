@@ -1,0 +1,11 @@
+"""
+algobot::databot::Google
+================================================
+
+API to download data from Google finance:
+
+http://www.google.com/finance
+
+Author: Yue Zhao (yzhao0527'at'gmail'dot'com)
+Last Modified: 2014-11-15
+"""
