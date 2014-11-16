@@ -8,6 +8,6 @@ Author: Yue Zhao (yzhao0527'at'gmail'dot'com)
 Last Modified: 2014-11-15
 """
 
-from .FADownloader import FADownloader
+from .FRDownloader import FRDownloader
 
-__all__ = ['FADownloader']
+__all__ = ['FRDownloader']

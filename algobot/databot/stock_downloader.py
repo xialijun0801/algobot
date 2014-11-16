@@ -10,7 +10,7 @@ Last Modified: 2014-11-15
 
 from abc import ABCMeta, abstractmethod
 
-class StockDownloader(object, meta=ABCMeta):
+class StockDownloader(metaclass=ABCMeta):
     """
     Parameters
     ----------
@@ -26,7 +26,7 @@ class StockDownloader(object, meta=ABCMeta):
         self.__done = False
         self.__data = None
 
-        if ticker is None or isinstance(exchange, str):
+        if ticker is None or isinstance(ticker, str):
             self.__ticker = ticker
         else:
             raise TypeError("ticker must be of type str.")
@@ -45,29 +45,38 @@ class StockDownloader(object, meta=ABCMeta):
     def done(self):
         return self.__done
 
+    @done.setter
+    def done(self, v):
+        self.__done = v
+    
     @property
     def data(self):
         if not self.__done:
             raise ValueError("Data hasn't been downloaded.")
         return self.__data
 
+    @data.setter
+    def data(self, v):
+        self.__data = v
+    
+    @property
+    def ticker(self):
+        return self.__ticker
+
     @ticker.setter
     def ticker(self, v):
         if not isinstance(v, str):
             raise TypeError("ticker must be of type str.")
         self.__ticker = v
-
+    
     @property
-    def ticker(self):
-        return self.__ticker
-
+    def exchange(self):
+        return self.__exchange
+    
     @exchange.setter
     def exchange(self, v):
         if not isinstance(x, str):
             raise TypeError("exchange must be of type str.")
         self.__exchange = v
 
-    @property
-    def exchange(self):
-        return self.__exchange
 
