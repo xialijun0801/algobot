@@ -106,13 +106,16 @@ class FRBatchDownloader(BatchDownloader):
 
 
     def __init__(self, tickers=[]):
-        print("@TODO: rewrite this part, add exchange data")
         self.downloaders = {}
         for t in tickers:
             self.addTicker(t)
     
 
     def addTicker(self, ticker, exchange=None):
+        if not isinstance(ticker, str):
+            raise TypeError("ticker is not of type str.")
+        if exchange is not None and not isinstance(exchange, str):
+            raise TypeError("exchange must be None or of type str.")
         self.downloaders[ticker] = FRDownloader(ticker, exchange)
     
         
@@ -133,35 +136,8 @@ class FRBatchDownloader(BatchDownloader):
             time.sleep(interval)
     
     
-    def makeTable(self):
-        """
-        Make the FR Table
-        -----------------
-        N-by-M
-
-        N: number of stocks
-        M: number of fields
-        """
-        allData = []
-        tickers = []
-        for ticker, v in self.downloaders.items():
-            formIds     = FRDownloader.formIds
-            frequencies = FRDownloader.frequencies
-
-            dta = []
-            for fid, freq in itertools.product(formIds, frequencies):
-                formId = fid.format(freq)
-                for i in range(v.data[formId].shape[1]):
-                    z = v.data[formId].iloc[:,i]
-                    if freq == 'annual':                        
-                        inx = z.index.map(lambda n : "IA{}_{}".format(i, n))
-                    else:
-                        inx = z.index.map(lambda n : "IQ{}_{}".format(i, n))
-                    dta.append(pd.Series(np.array(z), index=inx))
-
-            allData.append(pd.concat(dta))
-            tickers.append(ticker)
-                        
-        tbl = pd.concat(allData, axis=1).T
-        tbl.index = tickers
-        return tbl
+    #def saveFiles(self):
+    #    for ticker, data in self.downloaders.items():
+            
+        
+    
