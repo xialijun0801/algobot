@@ -11,12 +11,11 @@ Last Modified: 2014-11-15
 """
 from urllib import request
 from bs4 import BeautifulSoup
-import itertools, time
+import itertools
 import numpy as np
 import pandas as pd
 
-from ..stock_downloader import StockDownloader
-from ..batch_downloader import BatchDownloader
+from ..downloader import StockDownloader, BatchDownloader
 from . import fr_codes
 
 
@@ -31,28 +30,29 @@ class FRDownloader(StockDownloader):
     formIds     = ['inc{}div', 'bal{}div', 'cas{}div']
     frequencies = ['interim', 'annual']
 
-    
-    def __init__(self, ticker=None, exchange=None):
-        StockDownloader.__init__(self, ticker, exchange)
 
+    def __init__(self, ticker=None, exchange=None):
+        StockDownloader.__init__(self, ticker, self.convertExchange(exchange))
+
+    
+    def convertExchange(self, exchange):
+        if exchange in self.Exchanges:
+            return exchange
+        return None
+    
     
     def download(self):
         """
         download the entire HTML file from Google finance
-
-        Return
-        ------
-        
         """
         assert isinstance(self.ticker, str)
         assert len(self.ticker) > 0
-        if self.exchange is None:
+        exchange = self.convertExchange(self.exchange)
+        if exchange is None:
             url = self.URL.format(self.ticker)
         else:
-            assert self.exchange in self.Exchanges
-            url = self.URL.format(r"{}:{}".format(self.exchange,
-                                                  self.ticker))
-
+            url = self.URL.format(r"{}:{}".format(exchange, self.ticker))
+        
         # load data from web
         try:
             response = request.urlopen(url)
@@ -60,7 +60,6 @@ class FRDownloader(StockDownloader):
         except:
             print("Warning: download failed for {}".format(self.ticker))
         else:
-            self.done = True
             self.__parseResult(html)
             
 
@@ -74,7 +73,9 @@ class FRDownloader(StockDownloader):
             # Iterate throught 3 forms and 2 frequencies
             formId  = fid.format(freq)
             frame   = soup.find(id=formId)
+            if frame is None: return
             fsTable = frame.find(id="fs-table")
+            if fsTable is None: return
             rows    = fsTable.findAll("tr")
     
             header  = [x.text.strip() for x in rows[0].findAll("th")][1:]
@@ -103,48 +104,29 @@ class FRDownloader(StockDownloader):
 
 
 class FRBatchDownloader(BatchDownloader):
+    """
+    """
 
-
-    def __init__(self, tickers=[]):
+    def __init__(self):
         print("@TODO: rewrite this part, add exchange data")
-        self.downloaders = {}
-        for t in tickers:
-            self.addTicker(t)
-    
-
-    def addTicker(self, ticker, exchange=None):
-        self.downloaders[ticker] = FRDownloader(ticker, exchange)
-    
-        
-    def download(self, blink=1, interval=30, n_iter=10):
-        n_iter = max(1, n_iter)
-        for loop in range(n_iter):
-            allDone = True
-            for k, v in self.downloaders.items():
-                print("process {}".format(k))
-                try:
-                    v.download()
-                except:
-                    pass
-                else:
-                    if not v.done: allDone = False
-                time.sleep(blink)
-            if allDone: break
-            time.sleep(interval)
+        BatchDownloader.__init__(self, FRDownloader)
     
     
-    def makeTable(self):
+    def fetchResult(self):
         """
         Make the FR Table
         -----------------
         N-by-M
-
+        
         N: number of stocks
         M: number of fields
         """
         allData = []
         tickers = []
         for ticker, v in self.downloaders.items():
+            
+            if not v.done: continue
+            
             formIds     = FRDownloader.formIds
             frequencies = FRDownloader.frequencies
 
@@ -165,3 +147,4 @@ class FRBatchDownloader(BatchDownloader):
         tbl = pd.concat(allData, axis=1).T
         tbl.index = tickers
         return tbl
+
