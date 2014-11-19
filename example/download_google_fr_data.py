@@ -16,3 +16,4 @@ downloader.addTickers(tickerList)
 downloader.download(blink=0)
 
 res = downloader.fetchResult()
+res.to_csv("fr_data.csv", index=True)

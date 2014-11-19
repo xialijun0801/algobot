@@ -148,14 +148,14 @@ class BatchDownloader(object, metaclass=ABCMeta):
                         v.download()
                     except:
                         if verbose:
-                            print("process {}: exception raised.".format(k))
+                            print("loop {} - process {}: exception raised.".format(loop, k))
                     else:
                         if not v.done:
                             allDone = False
                             if verbose:
-                                print("process {}: failed.".format(k))
+                                print("loop {} - process {}: failed.".format(loop, k))
                         else:
-                            print("process {}: succeeded.".format(k))
+                            print("loop {} - process {}: succeeded.".format(loop, k))
                     time.sleep(blink)
                 
             if allDone: break
