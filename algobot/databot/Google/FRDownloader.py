@@ -136,15 +136,15 @@ class FRBatchDownloader(BatchDownloader):
                 for i in range(v.data[formId].shape[1]):
                     z = v.data[formId].iloc[:,i]
                     if freq == 'annual':                        
-                        inx = z.index.map(lambda n : "IA{}_{}".format(i, n))
+                        inx = z.index.map(lambda n : "{}A{}_{}".format(fid[0].upper(), i, n))
                     else:
-                        inx = z.index.map(lambda n : "IQ{}_{}".format(i, n))
+                        inx = z.index.map(lambda n : "{}Q{}_{}".format(fid[0].upper(), i, n))
                     dta.append(pd.Series(np.array(z), index=inx))
 
-            allData.append(pd.concat(dta))
-            tickers.append(ticker)
-                        
-        tbl = pd.concat(allData, axis=1).T
-        tbl.index = tickers
-        return tbl
+            series = pd.concat(dta)
+            allData.append(pd.Series(np.array(series), index=[np.repeat(ticker, len(series)),
+                                                              series.index.tolist()]))
 
+        # make the table
+        tbl = pd.concat(allData).unstack()
+        return tbl
